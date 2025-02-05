@@ -41,7 +41,7 @@ export default function CreateBlog() {
 
                 setTimeout(() => {
                     router.push(`/posts/${data.id}`);
-                }, 1500);
+                }, 1000);
             } else {
                 setStatus({
                     isSubmitting: false,
