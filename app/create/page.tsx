@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function CreateBlog() {
     const router = useRouter();
@@ -10,9 +10,16 @@ export default function CreateBlog() {
         content: '',
     });
     const [error, setError] = useState('');
+    const [status, setStatus] = useState({
+        isSubmitting: false,
+        isSuccess: false,
+        isError: false,
+        message: ''
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setStatus({ isSubmitting: true, isSuccess: false, isError: false, message: '' });
         try {
             const response = await fetch('/api/posts', {
                 method: 'POST',
@@ -22,23 +29,49 @@ export default function CreateBlog() {
                 body: JSON.stringify(formData),
             });
 
+            const data = await response.json();
+
             if (response.ok) {
-                const data = await response.json();
-                router.push(`/posts/${data.id}`);
+                setStatus({
+                    isSubmitting: false,
+                    isSuccess: true,
+                    isError: false,
+                    message: 'Blog post created successfully!'
+                });
+
+                setTimeout(() => {
+                    router.push(`/posts/${data.id}`);
+                }, 1500);
             } else {
-                setError('Failed to create blog post');
+                setStatus({
+                    isSubmitting: false,
+                    isSuccess: false,
+                    isError: true,
+                    message: data.error || 'Failed to create blog post'
+                });
             }
         } catch (error) {
-            setError('An error occurred while creating the post');
+            setStatus({
+                isSubmitting: false,
+                isSuccess: false,
+                isError: true,
+                message: 'An error occurred while creating the post'
+            });
         }
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-2xl font-bold mb-6">Create New Blog Post</h1>
-            {error && (
+            {status.isSuccess && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    {status.message}
+                </div>
+            )}
+
+            {status.isError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
+                    {status.message}
                 </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
